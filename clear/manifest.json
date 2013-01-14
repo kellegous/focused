@@ -1,0 +1,19 @@
+{
+  "name" : "Clear",
+  "version" : "0.1",
+  "manifest_version" : 2,
+  "description" : "Clear",
+  "content_scripts" : [
+    {
+      "matches" : [ "http://*/*", "https://*/*" ],
+      "js" : ["cs.js", "jquery.min.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "background": {
+    "scripts": ["bg.js"]
+  },
+  "web_accessible_resources": [
+    "bg.png"
+  ]
+}
