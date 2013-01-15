@@ -7,12 +7,23 @@ var ui;
 
 var CreateUi = function() {
   var self = {},
-      img = chrome.runtime.getURL('bg.png'),
+      bg = chrome.runtime.getURL('im/bg.png'),
+      locklo = chrome.runtime.getURL('im/lock-lo.png'),
+      lockhi = chrome.runtime.getURL('im/lock-hi.png'),
       body = $(document.body),
-      overflow = body.css('overflow');
+      overflow = body.css('overflow'),
+      showing = false;
+
+  $(document.createElement('style'))
+    .attr('type', 'text/css')
+    .appendTo($(document.head))
+    .text(
+      '.clear_lock {background-image: url("' + locklo + '"), url("' + bg + '");}' +
+      '.clear_lock:hover {background-image: url("' + lockhi + '"), url("' + bg + '");}'
+    );
 
   var upper = $(document.createElement('div'))
-    .css('background-image', 'url("' + img + '")')
+    .css('background-image', 'url("' + bg + '")')
     .css('position', 'fixed')
     .css('top', 0)
     .css('left', -2)
@@ -24,7 +35,7 @@ var CreateUi = function() {
     .appendTo(body);
 
   var lower = $(document.createElement('div'))
-    .css('background-image', 'url("' + img + '")')
+    .css('background-image', 'url("' + bg + '")')
     .css('position', 'fixed')
     .css('top', window.innerHeight)
     .css('left', -2)
@@ -50,14 +61,16 @@ var CreateUi = function() {
     .css('border', '1px solid #999')
     .appendTo(button)
     .append($(document.createElement('a'))
+      .addClass('clear_lock')
       .attr('href', 'javascript:void(0)')
       .css('display', 'block')
       .css('width', 42)
       .css('height', 42)
       .css('border-radius', '21px')
-      .css('background-image', 'url("' + img + '")')
       .css('box-shadow', '0 2px 2px rgba(0,0,0,0.2)')
       .css('border', '1px solid #999')
+      .css('background-position', '50% 50%, 0 0')
+      .css('background-repeat', 'no-repeat, repeat')
       .on('click', function() {
         chrome.extension.sendMessage({
           q:'unlock!',
@@ -67,12 +80,23 @@ var CreateUi = function() {
       }));
 
   self.Show = function() {
+    if (showing) {
+      return;
+    }
+    showing = true;
+
     upper.animate({height:350}, 200);
     lower.animate({top:350}, 200);
     body.css('overflow', 'hidden');
     return self;
   };
+
   self.Hide = function() {
+    if (!showing) {
+      return;
+    }
+    showing = false;
+
     upper.animate({
       height: 380
     }, 200, function() {
@@ -93,11 +117,20 @@ var Load = function() {
     return;
   }
 
+  // is this a host that will ever lock?
+  if (!queryResponse.canlock) {
+    return;
+  }
+
+  // create the lock ui
+  ui = CreateUi();
+
+  // is this host unlocked now?
   if (!queryResponse.locked) {
     return;
   }
 
-  ui = CreateUi().Show();
+  ui.Show();
 };
 
 // ask the background page about locking this page
@@ -115,6 +148,9 @@ chrome.extension.onMessage.addListener(function(req, sender, responseWith) {
   switch (req.q) {
   case 'lock!':
     ui.Show();
+    break;
+  case 'unlock!':
+    ui.Hide();
     break;
   }
 });
