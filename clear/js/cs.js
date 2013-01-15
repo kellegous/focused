@@ -1,10 +1,15 @@
 (function() {
 
+// The initial response received from the locked? query (used to Load)
 var queryResponse;
+
+// A flag to indicate if the DOM content has loaded (used to Load)
 var contentLoaded = false;
 
+// Simple access to the Ui components
 var ui;
 
+// Creates the UI components in an unlocked state
 var CreateUi = function() {
   var self = {},
       bg = chrome.runtime.getURL('im/bg.png'),
@@ -14,6 +19,8 @@ var CreateUi = function() {
       overflow = body.css('overflow'),
       showing = false;
 
+  // we need hover for the link, so we inject a couple of style rules to avoid doing
+  // that work in javascript
   $(document.createElement('style'))
     .attr('type', 'text/css')
     .appendTo($(document.head))
@@ -22,6 +29,7 @@ var CreateUi = function() {
       '.clear_lock:hover {background-image: url("' + lockhi + '"), url("' + bg + '");}'
     );
 
+  // create the upper element of the lock ui
   var upper = $(document.createElement('div'))
     .css('background-image', 'url("' + bg + '")')
     .css('position', 'fixed')
@@ -34,6 +42,7 @@ var CreateUi = function() {
     .css('border', '1px solid #aaa')
     .appendTo(body);
 
+  // create the lower element of the lock ui
   var lower = $(document.createElement('div'))
     .css('background-image', 'url("' + bg + '")')
     .css('position', 'fixed')
@@ -44,6 +53,7 @@ var CreateUi = function() {
     .css('z-index', 60000)
     .appendTo(body);
 
+  // create all the interactive parts
   var button = $(document.createElement('div'))
     .css('position', 'absolute')
     .css('left', 0)
@@ -140,6 +150,7 @@ chrome.extension.sendMessage({q:'locked?', host: window.location.host},
     Load();
   });
 
+// listen for commands from the background page
 chrome.extension.onMessage.addListener(function(req, sender, responseWith) {
   if (!ui) {
     return;

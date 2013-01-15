@@ -1,5 +1,10 @@
+must do
 = finish lock screen styling.
 = add timer display at beginning of lock.
 = add 30 second warning and final 10 second countdown.
 = create extension artwork.
 = add ability to add a blocked site.
+= add google notification blocking.
+
+could do
+= lock tabs with restricted referrer.
