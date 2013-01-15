@@ -6,10 +6,10 @@ var contentLoaded = false;
 var ui;
 
 var CreateUi = function() {
-  var self = {};
-
-  var img = chrome.runtime.getURL('bg.png');
-  var body = $(document.body).css('overflow', 'hidden');
+  var self = {},
+      img = chrome.runtime.getURL('bg.png'),
+      body = $(document.body),
+      overflow = body.css('overflow');
 
   var upper = $(document.createElement('div'))
     .css('background-image', 'url("' + img + '")')
@@ -59,17 +59,28 @@ var CreateUi = function() {
       .css('box-shadow', '0 2px 2px rgba(0,0,0,0.2)')
       .css('border', '1px solid #999')
       .on('click', function() {
+        chrome.extension.sendMessage({
+          q:'unlock!',
+          host: window.location.host
+        });
         self.Hide();
       }));
 
   self.Show = function() {
     upper.animate({height:350}, 200);
     lower.animate({top:350}, 200);
+    body.css('overflow', 'hidden');
     return self;
   };
   self.Hide = function() {
-    upper.animate({height:0}, 200);
-    lower.animate({top:window.innerHeight}, 200);
+    upper.animate({
+      height: 380
+    }, 200, function() {
+      upper.animate({height:0}, 200, function() {
+        body.css('overflow', overflow);        
+      });
+      lower.animate({top:window.innerHeight}, 200);
+    });
     return self;
   };
 
@@ -78,11 +89,13 @@ var CreateUi = function() {
 
 var Load = function() {
   // do we have everything we need?
-  if (!queryResponse || !contentLoaded)
+  if (!queryResponse || !contentLoaded) {
     return;
+  }
 
-  if (!queryResponse.locked)
+  if (!queryResponse.locked) {
     return;
+  }
 
   ui = CreateUi().Show();
 };
@@ -94,10 +107,22 @@ chrome.extension.sendMessage({q:'locked?', host: window.location.host},
     Load();
   });
 
+chrome.extension.onMessage.addListener(function(req, sender, responseWith) {
+  if (!ui) {
+    return;
+  }
+
+  switch (req.q) {
+  case 'lock!':
+    ui.Show();
+    break;
+  }
+});
+
 // wait for the page's content to load
 window.addEventListener('DOMContentLoaded', function(e) {
   contentLoaded = true;
-  setTimeout(Load, 0);
+  setTimeout(Load, 10);
 }, false);
 
 })();
