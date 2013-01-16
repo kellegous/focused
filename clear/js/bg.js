@@ -1,10 +1,9 @@
 (function() {
 
 const MINUTES = 60 * 1000;
-
-// TODO(knorton): For debugging purposes
-var TIMEOUT = 5 * 1000;
-// var TIMEOUT = 5 * MINUTES;
+const TIMEOUT = 5 * MINUTES;
+// const TIMEOUT = 10 * 1000;
+const WARNING = 30 * 1000;
 
 var domains = {
   'www.facebook.com'      : 0,
@@ -22,6 +21,14 @@ var Broadcast = function(host, msg) {
   });
 };
 
+var Warn = function(host) {
+  Broadcast(host, {
+    q: 'warn!',
+    host: host,
+    timeout: WARNING
+  });
+};
+
 var Lock = function(host) {
   console.log('Lock', host);
   Broadcast(host, {
@@ -34,8 +41,10 @@ var Unlock = function(host) {
   console.log('Unlock', host);
 
   // compute and record the timeout
-  var exp = Date.now() + TIMEOUT;
-  domains[host] = exp;
+  var warnAt = Date.now() + TIMEOUT;
+  var lockAt = warnAt + WARNING;
+
+  domains[host] = lockAt;
 
   // broadcast to all tabs on this host
   Broadcast(host, {
@@ -43,18 +52,31 @@ var Unlock = function(host) {
     host: host
   });
 
-  // schedule a timer to re-lock
-  var tick = function() {
+  // timer loop for re-lock
+  var tickLock = function() {
     var now = Date.now();
-    if (now < exp) {
-      setTimeout(tick, exp - now);
+    if (now < lockAt) {
+      setTimeout(tickLock, lockAt - now);
       return;
     }
 
     Lock(host);
   };
 
-  setTimeout(tick, TIMEOUT);
+  // timer loop for warning
+  var tickWarn = function() {
+    var now = Date.now();
+    if (now < warnAt) {
+      setTimeout(tickWarn, warnAt - now);
+      return;
+    }
+
+    Warn(host);
+    setTimeout(tickLock, WARNING);
+  };
+
+  // start the ticker waiting for warning
+  setTimeout(tickWarn, TIMEOUT);
 };
 
 var IsLocked = function(host) {
@@ -78,7 +100,7 @@ chrome.extension.onMessage.addListener(function(req, sender, respondWith) {
   case 'unlock!':
     Unlock(req.host);
     respondWith({
-      locked: true
+      timeout: TIMEOUT
     });
     break;
   }

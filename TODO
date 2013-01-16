@@ -1,11 +1,14 @@
 must do
 = add timer display at beginning of lock.
 = add 30 second warning and final 10 second countdown.
+  x - added warn! event
 = create extension artwork.
 = add ability to add a blocked site.
 = add google notification blocking.
 = BUG: i just ended up with two locks on hacker news
 = PERF: move to a raf animation
+= BUG: window resizes can cause an unlocked shutter to appear at the bottom. would
+  be better to display:none those during unlock so we do not have to tag resize.
 
 
 could do

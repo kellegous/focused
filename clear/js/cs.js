@@ -147,6 +147,9 @@ chrome.extension.onMessage.addListener(function(req, sender, responseWith) {
   case 'unlock!':
     ui.Hide();
     break;
+  case 'warn!':
+    console.log(req);
+    break;
   }
 });
 
@@ -156,7 +159,5 @@ window.addEventListener('DOMContentLoaded', function(e) {
   setTimeout(Load, 100);
 }, false);
 
-
-console.log(document.head);
 
 })();
