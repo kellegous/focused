@@ -5,6 +5,10 @@ must do
 = create extension artwork.
 = add ability to add a blocked site.
 = add google notification blocking.
+= BUG: i just ended up with two locks on hacker news
+
 
 could do
 = lock tabs with restricted referrer.
+= monitor tabs show/hide so that you don't come back to find a tab locked, but it
+  slams shut in front of your eyes.

@@ -1,11 +1,17 @@
 (function() {
 
-var TIMEOUT = 10 * 1000;
+const MINUTES = 60 * 1000;
+
+// TODO(knorton): For debugging purposes
+// var TIMEOUT = 10 * 1000;
+var TIMEOUT = 5 * MINUTES;
 
 var domains = {
-  'www.facebook.com' : 0,
-  'plus.google.com' : 0,
-  'news.ycombinator.com' : 0
+  'www.facebook.com'      : 0,
+  'plus.google.com'       : 0,
+  'news.ycombinator.com'  : 0,
+  'pinterest.com'         : 0,
+  'twitter.com'           : 0,
 };
 
 var Broadcast = function(host, msg) {
@@ -39,7 +45,6 @@ var Unlock = function(host) {
 
   // schedule a timer to re-lock
   var tick = function() {
-    console.log('tick', host);
     var now = Date.now();
     if (now < exp) {
       setTimeout(tick, exp - now);
