@@ -20,15 +20,11 @@ var CreateUi = function() {
       showing = false,
       head = $(document.head);
 
-  // we need hover for the link, so we inject a couple of style rules to avoid doing
-  // that work in javascript
-  $(document.createElement('style'))
+  $(document.createElement('link'))
+    .attr('href', chrome.runtime.getURL('ss/cs.css'))
+    .attr('rel', 'stylesheet')
     .attr('type', 'text/css')
-    .appendTo(head)
-    .text(
-      '.clear_lock {background-image: url("' + locklo + '"), url("' + bg + '");}' +
-      '.clear_lock:hover {background-image: url("' + lockhi + '"), url("' + bg + '");}'
-    );
+    .appendTo(head);
 
   // inject raleway into the page
   $(document.createElement('link'))
@@ -39,75 +35,28 @@ var CreateUi = function() {
 
   // create the upper element of the lock ui
   var upper = $(document.createElement('div'))
-    .css('background-image', 'url("' + bg + '")')
-    .css('position', 'fixed')
-    .css('top', 0)
-    .css('left', -2)
-    .css('right', -2)
-    .css('height', 0)
-    .css('z-index', 60001)
-    .css('box-shadow', '0 2px 10px rgba(0,0,0,0.1)')
-    .css('border', '1px solid #aaa')
-    .css('-webkit-user-select', 'none')
-    .appendTo(body);
+    .attr('id', 'clear-upper');
 
   // create the lower element of the lock ui
   var lower = $(document.createElement('div'))
-    .css('background-image', 'url("' + bg + '")')
-    .css('position', 'fixed')
-    .css('top', window.innerHeight)
-    .css('left', -2)
-    .css('right', -2)
-    .css('bottom', 0)
-    .css('z-index', 60000)
-    .css('overflow', 'hidden')
-    .appendTo(body);
+    .attr('id', 'clear-lower')
+    .css('top', window.innerHeight);
 
   $(document.createElement('div'))
-    .css('position', 'absolute')
-    .css('left', 0)
-    .css('right', 0)
-    .css('bottom', 0)
     .appendTo(lower)
     .append($(document.createElement('a'))
       .attr('href', 'http://kellegous.com/')
-      .attr('title', 'made by kellegous')
-      .css('width', 80)
-      .css('height', 50)
-      .css('background', 'url("http://kellegous.com/s/sig.png")  no-repeat 0 0')
-      .css('display', 'block')
-      .css('margin', '0 auto 20px auto')
-      .css('opacity', 0.3));
-
+      .attr('title', 'made by kellegous'));
 
   // create all the interactive parts
   var button = $(document.createElement('div'))
-    .css('position', 'absolute')
-    .css('left', 0)
-    .css('right', 0)
-    .css('bottom', 30)
     .appendTo(upper);
 
   $(document.createElement('div'))
-    .css('width', 44)
-    .css('height', 44)
-    .css('background-color', '#aaa')
-    .css('border-radius', '30px')
-    .css('padding', 4)
-    .css('margin', '0 auto')
-    .css('border', '1px solid #999')
+    .addClass('button')
     .appendTo(button)
     .append($(document.createElement('a'))
-      .addClass('clear_lock')
       .attr('href', 'javascript:void(0)')
-      .css('display', 'block')
-      .css('width', 42)
-      .css('height', 42)
-      .css('border-radius', '21px')
-      .css('box-shadow', '0 2px 2px rgba(0,0,0,0.2)')
-      .css('border', '1px solid #999')
-      .css('background-position', '50% 50%, 0 0')
-      .css('background-repeat', 'no-repeat, repeat')
       .on('click', function() {
         chrome.extension.sendMessage({
           q:'unlock!',
@@ -118,14 +67,10 @@ var CreateUi = function() {
 
   $(document.createElement('div'))
     .text('It\u2019s for your own good.')
-    .css('text-align', 'center')
-    .css('margin-top', 12)
-    .css('color', '#999')
-    .css('text-shadow', '1px 1px 1px #fff')
-    .css('font-size', '20px')
-    .css('cursor', 'default')
-    .css('font-family', '\'Raleway\', sans-serif')
+    .addClass('title')
     .appendTo(button);
+
+  body.append(upper, lower);
 
   self.Show = function() {
     if (showing) {

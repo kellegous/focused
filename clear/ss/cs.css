@@ -1,0 +1,85 @@
+#clear-upper, #clear-lower {
+  background-image: url("chrome-extension://__MSG_@@extension_id__/im/bg.png");
+}
+
+#clear-upper {
+  position: fixed;
+  top: 0;
+  left: -2px;
+  right: -2px;
+  height: 0;
+  z-index: 60001;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  border: 1px solid #aaa;
+  -webkit-user-select: none;
+}
+
+#clear-upper > div {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 30px;
+}
+
+#clear-upper > div > div.button {
+  width: 44px;
+  height: 44px;
+  background-color: #aaa;
+  border-radius: 30px;
+  padding: 4px;
+  margin: 0 auto;
+  border: 1px solid #999;
+}
+
+#clear-upper > div > div.button > a {
+  display: block;
+  width: 42px;
+  height: 42px;
+  border-radius: 21px;
+  box-shadow: 0 2px 2px rgba(0,0,0,0.2);
+  border: 1px solid #999;
+  background-image: url("chrome-extension://__MSG_@@extension_id__/im/lock-lo.png"),
+      url("chrome-extension://__MSG_@@extension_id__/im/bg.png");
+  background-position: 50% 50%, 0 0;
+  background-repeat: no-repeat, repeat;
+}
+
+#clear-upper > div > div.button > a:hover {
+  background-image: url("chrome-extension://__MSG_@@extension_id__/im/lock-hi.png"),
+      url("chrome-extension://__MSG_@@extension_id__/im/bg.png");
+}
+
+#clear-upper > div > div.title {
+  text-align: center;
+  margin-top: 12px;
+  color: #999;
+  text-shadow: 1px 1px 1px #fff;
+  font-size: 20px;
+  cursor: default;
+  font-family: 'Raleway', san-serif;
+}
+
+#clear-lower {
+  position: fixed;
+  left: -2px;
+  right: -2px;
+  bottom: 0;
+  z-index: 60000;
+  overflow: hidden;
+}
+
+#clear-lower > div {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+#clear-lower > div > a {
+  width: 80px;
+  height: 50px;
+  background: url("http://kellegous.com/s/sig.png") no-repeat 0 0;
+  display: block;
+  margin: 0 auto 20px auto;
+  opacity: 0.3;
+}

@@ -16,7 +16,8 @@
   "web_accessible_resources": [
     "im/bg.png",
     "im/lock-lo.png",
-    "im/lock-hi.png"
+    "im/lock-hi.png",
+    "ss/cs.css"
   ],
   "permissions": [
     "tabs"
