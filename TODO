@@ -1,11 +1,11 @@
 must do
-= finish lock screen styling.
 = add timer display at beginning of lock.
 = add 30 second warning and final 10 second countdown.
 = create extension artwork.
 = add ability to add a blocked site.
 = add google notification blocking.
 = BUG: i just ended up with two locks on hacker news
+= PERF: move to a raf animation
 
 
 could do

@@ -3,8 +3,8 @@
 const MINUTES = 60 * 1000;
 
 // TODO(knorton): For debugging purposes
-// var TIMEOUT = 10 * 1000;
-var TIMEOUT = 5 * MINUTES;
+var TIMEOUT = 5 * 1000;
+// var TIMEOUT = 5 * MINUTES;
 
 var domains = {
   'www.facebook.com'      : 0,

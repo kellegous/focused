@@ -46,6 +46,7 @@ var CreateUi = function() {
     .appendTo(lower)
     .append($(document.createElement('a'))
       .attr('href', 'http://kellegous.com/')
+      .attr('target', '_blank')
       .attr('title', 'made by kellegous'));
 
   // create all the interactive parts
@@ -152,7 +153,7 @@ chrome.extension.onMessage.addListener(function(req, sender, responseWith) {
 // wait for the page's content to load
 window.addEventListener('DOMContentLoaded', function(e) {
   contentLoaded = true;
-  setTimeout(Load, 10);
+  setTimeout(Load, 100);
 }, false);
 
 
