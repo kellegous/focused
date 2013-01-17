@@ -142,12 +142,6 @@ var Load = function() {
     return;
   }
 
-  // TODO(knorton): Sporadically, this gets fired twice.
-  if (ui) {
-    console.log(new Error().stack);
-    return;
-  }
-
   // create the lock ui
   ui = CreateUi();
 
