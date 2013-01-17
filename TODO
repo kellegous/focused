@@ -5,10 +5,10 @@ must do
 = create extension artwork.
 = add ability to add a blocked site.
 = add google notification blocking.
-= BUG: i just ended up with two locks on hacker news
 = PERF: move to a raf animation
 = BUG: window resizes can cause an unlocked shutter to appear at the bottom. would
   be better to display:none those during unlock so we do not have to tag resize.
+= convert image resources to datauris.
 
 
 could do

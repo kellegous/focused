@@ -9,6 +9,19 @@ var contentLoaded = false;
 // Simple access to the Ui components
 var ui;
 
+// Converts milliseconds into a decent time
+var TimeDesc = function(t) {
+  var m = t / 60000;
+  if (m < 0) {
+    return 'less than a minute';
+  }
+  return (m | 0) + ' minutes';
+};
+
+var ShowToast = function(msg, time) {
+  console.log(msg);
+};
+
 // Creates the UI components in an unlocked state
 var CreateUi = function() {
   var self = {},
@@ -62,8 +75,13 @@ var CreateUi = function() {
         chrome.extension.sendMessage({
           q:'unlock!',
           host: window.location.host
+        }, function(res) {
+          // TODO(knorton): Add callback to Hide where we will show
+          // an indicator of how long the tab will unlock.
+          self.Hide(function() {
+            ShowToast('Fine, take ' + TimeDesc(res.timeout) + '.', 2000);
+          });
         });
-        self.Hide();
       }));
 
   $(document.createElement('div'))
@@ -73,19 +91,23 @@ var CreateUi = function() {
 
   body.append(upper, lower);
 
-  self.Show = function() {
+  self.Show = function(callback) {
     if (showing) {
       return;
     }
     showing = true;
 
-    upper.animate({height:350}, 200);
-    lower.animate({top:350}, 200);
+    upper.css('display', '')
+      .animate({height:350}, 200);
+    lower.css('display', '')
+      .animate({top:350}, 200, function() {
+        callback && callback();
+      });
     body.css('overflow', 'hidden');
     return self;
   };
 
-  self.Hide = function() {
+  self.Hide = function(callback) {
     if (!showing) {
       return;
     }
@@ -95,9 +117,13 @@ var CreateUi = function() {
       height: 380
     }, 200, function() {
       upper.animate({height:0}, 200, function() {
+        upper.css('display', 'none');
         body.css('overflow', overflow);        
       });
-      lower.animate({top:window.innerHeight}, 200);
+      lower.animate({top:window.innerHeight}, 200, function() {
+        lower.css('display', 'none');
+        callback && callback();
+      });
     });
     return self;
   };
@@ -113,6 +139,12 @@ var Load = function() {
 
   // is this a host that will ever lock?
   if (!queryResponse.canlock) {
+    return;
+  }
+
+  // TODO(knorton): Sporadically, this gets fired twice.
+  if (ui) {
+    console.log(new Error().stack);
     return;
   }
 
@@ -146,6 +178,7 @@ chrome.extension.onMessage.addListener(function(req, sender, responseWith) {
     break;
   case 'unlock!':
     ui.Hide();
+    console.log(req);
     break;
   case 'warn!':
     console.log(req);
@@ -155,8 +188,10 @@ chrome.extension.onMessage.addListener(function(req, sender, responseWith) {
 
 // wait for the page's content to load
 window.addEventListener('DOMContentLoaded', function(e) {
-  contentLoaded = true;
-  setTimeout(Load, 100);
+  setTimeout(function() {
+    contentLoaded = true;
+    Load();
+  }, 500);
 }, false);
 
 
