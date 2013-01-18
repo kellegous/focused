@@ -1,18 +1,17 @@
 (function() {
 
-// The initial response received from the locked? query (used to Load)
-var queryResponse;
-
-// A flag to indicate if the DOM content has loaded (used to Load)
-var contentLoaded = false;
-
 // Simple access to the Ui components
 var ui;
 
 // a queue of commands that are waiting to run at startup.
 var pending = [];
 
-// Converts milliseconds into a decent time
+// the ui thread is really busy at DOMContentLoaded, so we postpone our animations
+// until a bit later to avoid the rush. This is the time we can start doing our
+// thing.
+var congestionEndsAt;
+
+// converts milliseconds into a decent time
 var TimeDesc = function(t) {
   var m = t / 60000;
   if (m < 0) {
@@ -154,35 +153,28 @@ var CreateUi = function() {
   return self = { Show: Show, Hide: Hide };
 };
 
-var Load = function() {
-  // do we have everything we need?
-  if (!queryResponse || !contentLoaded) {
+var Lock = function(msg) {
+  if (!ui) {
+    ui = CreateUi();
+  }
+
+  var when = congestionEndsAt - Date.now();
+  if (when <= 0) {
+    ui.Show();
     return;
   }
 
-  // is this a host that will ever lock?
-  if (!queryResponse.canlock) {
-    return;
-  }
-
-  // create the lock ui
-  ui = CreateUi();
-
-  // is this host unlocked now?
-  if (!queryResponse.locked) {
-    return;
-  }
-
-  ui.Show();
+  setTimeout(function() {
+    ui.Show();
+  }, when);
 };
 
 var Handle = function(msg) {
+  console.assert(pending == null);
+
   switch (msg.q) {
   case 'lock!':
-    if (!ui) {
-      ui = CreateUi();
-    }
-    ui.Show();
+    Lock(msg);
     break;
   case 'unlock!':
     if (!ui) {
@@ -206,11 +198,13 @@ var Handle = function(msg) {
 
 // listen for commands from the background page
 chrome.extension.onMessage.addListener(function(req, sender, responseWith) {
+  // if we are still in a pending state, queue messages
   if (pending) {
     pending.push(req);
     return;
   }
 
+  // handle messages
   Handle(req);
 });
 
@@ -219,19 +213,21 @@ window.addEventListener('DOMContentLoaded', function(e) {
   // install raf jquery changes
   UseRafTimer();
 
-  // dispatch any pending messages.
-  if (pending.length > 0) {
-    pending.forEach(Handle);
-  }
-  pending = null;
+  // record the time when congestion might be better in the ui
+  congestionEndsAt = Date.now() + 500;
 
-  // TODO(knorton): setup a congested ui state flag.
+  // dispatch any pending messages and end pending state
+  var toHandle = pending;
+  pending = null;
+  if (toHandle.length > 0) {
+    toHandle.forEach(Handle);
+  }
+
 }, false);
 
 
 var UseRafTimer = function() {
   var animating,
-      lastTime = 0,
       requestAnimationFrame = webkitRequestAnimationFrame,
       cancelAnimationFrame = webkitCancelAnimationFrame;
 

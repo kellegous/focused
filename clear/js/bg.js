@@ -16,7 +16,7 @@ var domains = {
 };
 
 var IsHttpUrl = function(url) {
-  return url.indexOf('http://') == 0 || url.indexOf('https://');
+  return url.indexOf('http://') == 0 || url.indexOf('https://') == 0;
 };
 
 var HostOf = function(url) {
@@ -58,8 +58,7 @@ var Lock = function(host) {
   console.log('Lock', host);
   Broadcast(host, {
     q: 'lock!',
-    host: host,
-    timeout: TIMEOUT
+    host: host
   });
 };
 
@@ -75,7 +74,8 @@ var Unlock = function(host) {
   // broadcast to all tabs on this host
   Broadcast(host, {
     q: 'unlock!',
-    host: host
+    host: host,
+    timeout: TIMEOUT
   });
 
   // timer loop for re-lock
@@ -143,6 +143,10 @@ chrome.extension.onMessage.addListener(function(req, sender, respondWith) {
 });
 
 chrome.tabs.onUpdated.addListener(function(id, change, tab) {
+  if (tab.status !== 'loading') {
+    return;
+  }
+
   if (!IsHttpUrl(tab.url)) {
     return;
   }
