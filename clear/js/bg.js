@@ -2,8 +2,9 @@
 
 const MINUTES = 60 * 1000;
 const TIMEOUT = 5 * MINUTES;
-// const TIMEOUT = 10 * 1000;
 const WARNING = 30 * 1000;
+// const TIMEOUT = 10 * 1000;
+// const WARNING = 5 * 1000;
 
 var domains = {
   'www.facebook.com'      : 0,
@@ -12,6 +13,29 @@ var domains = {
   'pinterest.com'         : 0,
   'twitter.com'           : 0,
   'kellegous.com'         : 0,
+};
+
+var IsHttpUrl = function(url) {
+  return url.indexOf('http://') == 0 || url.indexOf('https://');
+};
+
+var HostOf = function(url) {
+  // TODO(knorton): ignore authority for now
+  var ix = url.indexOf(':') + 1;
+  if (ix == 0 || ix == url.length) {
+    throw new Error('bad url');
+  }
+
+  while (url.charAt(ix) === '/') {
+    ix++;
+  }
+
+  var jx = url.indexOf('/', ix);
+  if (jx == -1) {
+    return url.substring(ix);
+  }
+
+  return url.substring(ix, jx);
 };
 
 var Broadcast = function(host, msg) {
@@ -34,7 +58,8 @@ var Lock = function(host) {
   console.log('Lock', host);
   Broadcast(host, {
     q: 'lock!',
-    host: host
+    host: host,
+    timeout: TIMEOUT
   });
 };
 
@@ -89,22 +114,46 @@ var CanLock = function(host) {
   return domains[host] !== undefined;
 };
 
+// TODO(knorton): Refactor this to only receive 'unlock!' command.
+// chrome.extension.onMessage.addListener(function(req, sender, respondWith) {
+//   var now = Date.now();
+//   switch (req.q) {
+//   case 'locked?':
+//     console.log(req);
+//     respondWith({
+//       locked: IsLocked(req.host),
+//       canlock: CanLock(req.host)
+//     });
+//     break;
+//   case 'unlock!':
+//     Unlock(req.host);
+//     respondWith({
+//       timeout: TIMEOUT
+//     });
+//     break;
+//   }
+// });
+
 chrome.extension.onMessage.addListener(function(req, sender, respondWith) {
-  var now = Date.now();
   switch (req.q) {
-  case 'locked?':
-    respondWith({
-      locked: IsLocked(req.host),
-      canlock: CanLock(req.host)
-    });
-    break;
   case 'unlock!':
     Unlock(req.host);
-    respondWith({
-      timeout: TIMEOUT
-    });
     break;
   }
+});
+
+chrome.tabs.onUpdated.addListener(function(id, change, tab) {
+  if (!IsHttpUrl(tab.url)) {
+    return;
+  }
+
+  var host = HostOf(tab.url);
+
+  if (!IsLocked(host)) {
+    return;
+  }
+
+  Lock(host);
 });
 
 })();

@@ -9,6 +9,9 @@ var contentLoaded = false;
 // Simple access to the Ui components
 var ui;
 
+// a queue of commands that are waiting to run at startup.
+var pending = [];
+
 // Converts milliseconds into a decent time
 var TimeDesc = function(t) {
   var m = t / 60000;
@@ -75,11 +78,6 @@ var CreateUi = function() {
         chrome.extension.sendMessage({
           q:'unlock!',
           host: window.location.host
-        }, function(res) {
-          // show a brief message indicating how much time is allowed
-          self.Hide(function() {
-            ShowToast('fine, take ' + TimeDesc(res.timeout) + '.', 2000);
-          });
         });
       }));
 
@@ -178,39 +176,56 @@ var Load = function() {
   ui.Show();
 };
 
-// ask the background page about locking this page
-chrome.extension.sendMessage({q:'locked?', host: window.location.host},
-  function(rsp) {
-    queryResponse = rsp;
-    Load();
-  });
-
-// listen for commands from the background page
-chrome.extension.onMessage.addListener(function(req, sender, responseWith) {
-  if (!ui) {
-    return;
-  }
-
-  switch (req.q) {
+var Handle = function(msg) {
+  switch (msg.q) {
   case 'lock!':
+    if (!ui) {
+      ui = CreateUi();
+    }
     ui.Show();
     break;
   case 'unlock!':
-    ui.Hide();
+    if (!ui) {
+      return;
+    }
+    ui.Hide(function() {
+      ShowToast('fine, take ' + TimeDesc(msg.timeout) + '.', 2000);
+    });
     break;
   case 'warn!':
     ShowToast('30 seconds!', 2000);
     break;
+  case 'mod!':
+    console.log('mod!');
+    break;
+  case 'unmod!':
+    console.log('unmod!');
+    break;
   }
+};
+
+// listen for commands from the background page
+chrome.extension.onMessage.addListener(function(req, sender, responseWith) {
+  if (pending) {
+    pending.push(req);
+    return;
+  }
+
+  Handle(req);
 });
 
 // wait for the page's content to load
 window.addEventListener('DOMContentLoaded', function(e) {
+  // install raf jquery changes
   UseRafTimer();
-  setTimeout(function() {
-    contentLoaded = true;
-    Load();
-  }, 500);
+
+  // dispatch any pending messages.
+  if (pending.length > 0) {
+    pending.forEach(Handle);
+  }
+  pending = null;
+
+  // TODO(knorton): setup a congested ui state flag.
 }, false);
 
 
