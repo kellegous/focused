@@ -206,11 +206,37 @@ chrome.extension.onMessage.addListener(function(req, sender, responseWith) {
 
 // wait for the page's content to load
 window.addEventListener('DOMContentLoaded', function(e) {
+  UseRafTimer();
   setTimeout(function() {
     contentLoaded = true;
     Load();
   }, 500);
 }, false);
 
+
+var UseRafTimer = function() {
+  var animating,
+      lastTime = 0,
+      requestAnimationFrame = webkitRequestAnimationFrame,
+      cancelAnimationFrame = webkitCancelAnimationFrame;
+
+  var tick = function() {
+    if (!animating)
+      return;
+    requestAnimationFrame(tick);
+    jQuery.fx.tick();
+  }
+
+  jQuery.fx.timer = function(timer) {
+    if (timer() && jQuery.timers.push(timer) && !animating) {
+      animating = true;
+      tick();
+    }
+  };
+
+  jQuery.fx.stop = function() {
+    animating = false;
+  };
+};
 
 })();

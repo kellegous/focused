@@ -1,9 +1,7 @@
 must do
 = add ability to add a blocked site.
 = create extension artwork.
-= PERF: move to a raf animation
-= convert image resources to datauris.
-
+= PERF: lock screen trans w/ -webkit-transform
 
 could do
 = add google notification blocking.
