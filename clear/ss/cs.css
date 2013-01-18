@@ -1,3 +1,21 @@
+#clear-toast {
+  position: fixed;
+  background-color: rgba(51, 51, 51, 0.9);
+  color: #fff;
+  padding: 42px 40px 40px 40px;
+  width: 400px;
+  margin-left: -200px;
+  margin-top: -25px;
+  left: 50%;
+  top: 20%;
+  border-radius: 6px;
+  box-shadow: -4px 6px 8px rgba(0,0,0,0.2);
+  font-family: 'Raleway', san-serif;
+  text-align: center;
+  font-size: 40px;
+  z-index: 60000;
+}
+
 #clear-upper, #clear-lower {
   background-image: url("chrome-extension://__MSG_@@extension_id__/im/bg.png");
 }

@@ -18,21 +18,33 @@ var TimeDesc = function(t) {
   return (m | 0) + ' minutes';
 };
 
+// new element utility
+var E = function(type) {
+  return $(document.createElement(type));
+};
+
 var ShowToast = function(msg, time) {
-  console.log(msg);
+  E('div').attr('id', 'clear-toast')
+    .css('display', 'none')
+    .text(msg)
+    .appendTo($(document.body))
+    .fadeIn(200)
+    .delay(time)
+    .fadeOut(200, function() {
+      $(this).remove();
+    });
 };
 
 // Creates the UI components in an unlocked state
 var CreateUi = function() {
-  var self = {},
-      bg = chrome.runtime.getURL('im/bg.png'),
-      locklo = chrome.runtime.getURL('im/lock-lo.png'),
-      lockhi = chrome.runtime.getURL('im/lock-hi.png'),
-      body = $(document.body),
+  var body = $(document.body),
+      head = $(document.head),
       overflow = body.css('overflow'),
       showing = false,
-      head = $(document.head);
+      self;
 
+  // inject the ui stylesheet
+  // TODO(knorton): need to inline resources to avoid flicker
   $(document.createElement('link'))
     .attr('href', chrome.runtime.getURL('ss/cs.css'))
     .attr('rel', 'stylesheet')
@@ -40,8 +52,9 @@ var CreateUi = function() {
     .appendTo(head);
 
   // inject raleway into the page
+  // TODO(knorton): can i inline this?
   $(document.createElement('link'))
-    .attr('href', 'https://fonts.googleapis.com/css?family=Raleway')
+    .attr('href', 'https://fonts.googleapis.com/css?family=Raleway:400')
     .attr('rel', 'stylesheet')
     .attr('type', 'text/css')
     .appendTo(head);
@@ -50,22 +63,9 @@ var CreateUi = function() {
   var upper = $(document.createElement('div'))
     .attr('id', 'clear-upper');
 
-  // create the lower element of the lock ui
-  var lower = $(document.createElement('div'))
-    .attr('id', 'clear-lower')
-    .css('top', window.innerHeight);
-
-  $(document.createElement('div'))
-    .appendTo(lower)
-    .append($(document.createElement('a'))
-      .attr('href', 'http://kellegous.com/')
-      .attr('target', '_blank')
-      .attr('title', 'made by kellegous'));
-
   // create all the interactive parts
   var button = $(document.createElement('div'))
     .appendTo(upper);
-
   $(document.createElement('div'))
     .addClass('button')
     .appendTo(button)
@@ -76,38 +76,63 @@ var CreateUi = function() {
           q:'unlock!',
           host: window.location.host
         }, function(res) {
-          // TODO(knorton): Add callback to Hide where we will show
-          // an indicator of how long the tab will unlock.
+          // show a brief message indicating how much time is allowed
           self.Hide(function() {
-            ShowToast('Fine, take ' + TimeDesc(res.timeout) + '.', 2000);
+            ShowToast('fine, take ' + TimeDesc(res.timeout) + '.', 2000);
           });
         });
       }));
 
+  // add text below lock
   $(document.createElement('div'))
     .text('It\u2019s for your own good.')
     .addClass('title')
     .appendTo(button);
 
+  // create the lower element of the lock ui
+  var lower = $(document.createElement('div'))
+    .attr('id', 'clear-lower')
+    .css('top', window.innerHeight);
+
+  // create the signature link pointing to my site
+  $(document.createElement('div'))
+    .appendTo(lower)
+    .append($(document.createElement('a'))
+      .attr('href', 'http://kellegous.com/')
+      .attr('target', '_blank')
+      .attr('title', 'made by kellegous'));
+
+  // put both elements into the DOM
   body.append(upper, lower);
 
-  self.Show = function(callback) {
+  // shows the lock ui
+  var Show = function(callback) {
     if (showing) {
       return;
     }
     showing = true;
 
+    var wh = window.innerHeight;
+    var sh = 350;
+
+    // special case for small windows (like facebook auth) just put the shudder
+    // at the bottom.
+    if (wh < sh) {
+      sh = wh;
+    }
+
     upper.css('display', '')
-      .animate({height:350}, 200);
+      .animate({height:sh}, 200);
     lower.css('display', '')
-      .animate({top:350}, 200, function() {
+      .animate({top:sh}, 200, function() {
         callback && callback();
       });
     body.css('overflow', 'hidden');
     return self;
   };
 
-  self.Hide = function(callback) {
+  // hides the lock ui
+  var Hide = function(callback) {
     if (!showing) {
       return;
     }
@@ -128,7 +153,7 @@ var CreateUi = function() {
     return self;
   };
 
-  return self;
+  return self = { Show: Show, Hide: Hide };
 };
 
 var Load = function() {
@@ -172,10 +197,9 @@ chrome.extension.onMessage.addListener(function(req, sender, responseWith) {
     break;
   case 'unlock!':
     ui.Hide();
-    console.log(req);
     break;
   case 'warn!':
-    console.log(req);
+    ShowToast('30 seconds!', 2000);
     break;
   }
 });

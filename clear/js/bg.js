@@ -11,6 +11,7 @@ var domains = {
   'news.ycombinator.com'  : 0,
   'pinterest.com'         : 0,
   'twitter.com'           : 0,
+  'kellegous.com'         : 0,
 };
 
 var Broadcast = function(host, msg) {
