@@ -14,7 +14,7 @@ var domains = {
   'news.ycombinator.com'  : 0,
   'pinterest.com'         : 0,
   'twitter.com'           : 0,
-  'www.reddit.com'        : 0,
+  'www.reddit.com'        : 0
 };
 
 var modsByTarget = {};
@@ -222,5 +222,17 @@ chrome.tabs.onUpdated.addListener(function(id, change, tab) {
     Mod(host, mod[0], mod[1]);
   }
 });
+
+
+chrome.browserAction.onClicked.addListener(function(tab) {
+  var host = HostOf(tab.url);
+
+  if (IsLocked(host)) {
+  } else {
+  }
+
+  console.log(tab);
+});
+
 
 })();

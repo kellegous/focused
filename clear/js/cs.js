@@ -247,18 +247,39 @@ window.addEventListener('DOMContentLoaded', function(e) {
 // monkey patch jquery to use raf callbacks rather than setInterval
 var UseRafTimer = function() {
   var animating,
+      stopTimer = jQuery.fx.stop,
       requestAnimationFrame = requestAnimationFrame || webkitRequestAnimationFrame,
       cancelAnimationFrame = cancelAnimationFrame || webkitCancelAnimationFrame;
 
+  // using raf has the downside that animations do not complete in hidden frames,
+  // so we switch to a timer to complete animations.
+  document.addEventListener('webkitvisibilitychange', function() {
+    // switch to the timer to complete any outstanding animations
+    if (document.webkitHidden && animating) {
+      // this will end the raf loop as soon was we're visible again
+      animating = false;
+      jQuery.fx.start();
+    }
+  }, false);
+
   var tick = function() {
-    if (!animating)
+    if (!animating) {
       return;
+    }
     requestAnimationFrame(tick);
     jQuery.fx.tick();
-  }
+  };
 
   jQuery.fx.timer = function(timer) {
+    console.log('timer');
     if (timer() && jQuery.timers.push(timer) && !animating) {
+      // if we are hidden, use timer animation
+      if (document.webkitHidden) {
+        jQuery.fx.start();
+        return;
+      }
+
+      // otherwise, use raf
       animating = true;
       tick();
     }
@@ -266,6 +287,7 @@ var UseRafTimer = function() {
 
   jQuery.fx.stop = function() {
     animating = false;
+    stopTimer();
   };
 };
 
