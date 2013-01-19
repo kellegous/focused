@@ -1,10 +1,9 @@
 must do
 = add ability to add a blocked site.
 = create extension artwork.
-= PERF: lock screen trans w/ -webkit-transform
 
 could do
-= add google notification blocking.
+= PERF: lock screen trans w/ -webkit-transform
 = lock tabs with restricted referrer.
 = monitor tabs show/hide so that you don't come back to find a tab locked, but it
   slams shut in front of your eyes.
