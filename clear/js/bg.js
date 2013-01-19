@@ -1,24 +1,29 @@
 (function() {
 
 const MINUTES = 60 * 1000;
-const TIMEOUT = 5 * MINUTES;
-const WARNING = 30 * 1000;
-// const TIMEOUT = 10 * 1000;
-// const WARNING = 5 * 1000;
+// const TIMEOUT = 5 * MINUTES;
+// const WARNING = 30 * 1000;
+const TIMEOUT = 10 * 1000;
+const WARNING = 5 * 1000;
 
+// a map from host that can be locked an the lock timeout.
 var domains = {
   'www.facebook.com'      : 0,
   'plus.google.com'       : 0,
   'news.ycombinator.com'  : 0,
   'pinterest.com'         : 0,
   'twitter.com'           : 0,
-  'kellegous.com'         : 0,
+  'www.reddit.com'        : 0,
 };
 
+
+// determines if the url is http or https
 var IsHttpUrl = function(url) {
   return url.indexOf('http://') == 0 || url.indexOf('https://') == 0;
 };
 
+
+// parse a url and determine the host
 var HostOf = function(url) {
   // TODO(knorton): ignore authority for now
   var ix = url.indexOf(':') + 1;
@@ -38,6 +43,8 @@ var HostOf = function(url) {
   return url.substring(ix, jx);
 };
 
+
+// broadcast a message to all tabs with a page from a particular host
 var Broadcast = function(host, msg) {
   chrome.tabs.query({ url: '*://' + host + '/*'}, function(tabs) {
     tabs.forEach(function(tab) {
@@ -46,6 +53,8 @@ var Broadcast = function(host, msg) {
   });
 };
 
+
+// issue a close warning to the host
 var Warn = function(host) {
   Broadcast(host, {
     q: 'warn!',
@@ -54,6 +63,8 @@ var Warn = function(host) {
   });
 };
 
+
+// lock a host
 var Lock = function(host) {
   console.log('Lock', host);
   Broadcast(host, {
@@ -62,6 +73,9 @@ var Lock = function(host) {
   });
 };
 
+
+// unlocks the specified host and drive the re-lock timers and multi-tab
+// coordination
 var Unlock = function(host) {
   console.log('Unlock', host);
 
@@ -105,35 +119,15 @@ var Unlock = function(host) {
   setTimeout(tickWarn, TIMEOUT);
 };
 
+
+// is this host currently locked?
 var IsLocked = function(host) {
   var exp = domains[host];
   return exp === undefined ? false : exp < Date.now();
 };
 
-var CanLock = function(host) {
-  return domains[host] !== undefined;
-};
 
-// TODO(knorton): Refactor this to only receive 'unlock!' command.
-// chrome.extension.onMessage.addListener(function(req, sender, respondWith) {
-//   var now = Date.now();
-//   switch (req.q) {
-//   case 'locked?':
-//     console.log(req);
-//     respondWith({
-//       locked: IsLocked(req.host),
-//       canlock: CanLock(req.host)
-//     });
-//     break;
-//   case 'unlock!':
-//     Unlock(req.host);
-//     respondWith({
-//       timeout: TIMEOUT
-//     });
-//     break;
-//   }
-// });
-
+// listens from commands from the host pages
 chrome.extension.onMessage.addListener(function(req, sender, respondWith) {
   switch (req.q) {
   case 'unlock!':
@@ -142,6 +136,8 @@ chrome.extension.onMessage.addListener(function(req, sender, respondWith) {
   }
 });
 
+
+// use this to monitor tabs that should be locked or modded
 chrome.tabs.onUpdated.addListener(function(id, change, tab) {
   if (tab.status !== 'loading') {
     return;

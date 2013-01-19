@@ -11,20 +11,30 @@ var pending = [];
 // thing.
 var congestionEndsAt;
 
+
 // converts milliseconds into a decent time
 var TimeDesc = function(t) {
-  var m = t / 60000;
-  if (m < 0) {
-    return 'less than a minute';
+  var s = t / 1000;
+  if (s < 60) {
+    return (s | 0) + ' seconds';
   }
-  return (m | 0) + ' minutes';
+
+  var m = s / 60;
+  if (m < 60) {
+    return (m | 0) + ' minutes';
+  }
+
+  return ((m / 60) | 0) + ' hours';
 };
+
 
 // new element utility
 var E = function(type) {
   return $(document.createElement(type));
 };
 
+
+// show a simple toast-style message for the specified time
 var ShowToast = function(msg, time) {
   E('div').attr('id', 'clear-toast')
     .css('display', 'none')
@@ -37,7 +47,8 @@ var ShowToast = function(msg, time) {
     });
 };
 
-// Creates the UI components in an unlocked state
+
+// creates the UI components in an unlocked state
 var CreateUi = function() {
   var body = $(document.body),
       head = $(document.head),
@@ -47,29 +58,26 @@ var CreateUi = function() {
 
   // inject the ui stylesheet
   // TODO(knorton): need to inline resources to avoid flicker
-  $(document.createElement('link'))
+  E('link').attr('rel', 'stylesheet')
     .attr('href', chrome.runtime.getURL('ss/cs.css'))
-    .attr('rel', 'stylesheet')
     .attr('type', 'text/css')
     .appendTo(head);
 
   // inject raleway into the page
   // TODO(knorton): can i inline this?
-  $(document.createElement('link'))
+  E('link').attr('rel', 'stylesheet')
     .attr('href', 'https://fonts.googleapis.com/css?family=Raleway:400')
-    .attr('rel', 'stylesheet')
     .attr('type', 'text/css')
     .appendTo(head);
 
   // create the upper element of the lock ui
-  var upper = $(document.createElement('div'))
+  var upper = E('div')
     .attr('id', 'clear-upper');
 
   // create all the interactive parts
-  var button = $(document.createElement('div'))
+  var button = E('div')
     .appendTo(upper);
-  $(document.createElement('div'))
-    .addClass('button')
+  E('div').addClass('button')
     .appendTo(button)
     .append($(document.createElement('a'))
       .attr('href', 'javascript:void(0)')
@@ -81,18 +89,18 @@ var CreateUi = function() {
       }));
 
   // add text below lock
-  $(document.createElement('div'))
+  E('div')
     .text('It\u2019s for your own good.')
     .addClass('title')
     .appendTo(button);
 
   // create the lower element of the lock ui
-  var lower = $(document.createElement('div'))
+  var lower = E('div')
     .attr('id', 'clear-lower')
     .css('top', window.innerHeight);
 
   // create the signature link pointing to my site
-  $(document.createElement('div'))
+  E('div')
     .appendTo(lower)
     .append($(document.createElement('a'))
       .attr('href', 'http://kellegous.com/')
@@ -153,6 +161,8 @@ var CreateUi = function() {
   return self = { Show: Show, Hide: Hide };
 };
 
+
+// locks the screen
 var Lock = function(msg) {
   if (!ui) {
     ui = CreateUi();
@@ -169,6 +179,8 @@ var Lock = function(msg) {
   }, when);
 };
 
+
+// the main message handler
 var Handle = function(msg) {
   console.assert(pending == null);
 
@@ -185,7 +197,7 @@ var Handle = function(msg) {
     });
     break;
   case 'warn!':
-    ShowToast('30 seconds!', 2000);
+    ShowToast(TimeDesc(msg.timeout) + '!', 2000);
     break;
   case 'mod!':
     console.log('mod!');
@@ -195,6 +207,7 @@ var Handle = function(msg) {
     break;
   }
 };
+
 
 // listen for commands from the background page
 chrome.extension.onMessage.addListener(function(req, sender, responseWith) {
@@ -207,6 +220,7 @@ chrome.extension.onMessage.addListener(function(req, sender, responseWith) {
   // handle messages
   Handle(req);
 });
+
 
 // wait for the page's content to load
 window.addEventListener('DOMContentLoaded', function(e) {
@@ -226,6 +240,7 @@ window.addEventListener('DOMContentLoaded', function(e) {
 }, false);
 
 
+// monkey patch jquery to use raf callbacks rather than setInterval
 var UseRafTimer = function() {
   var animating,
       requestAnimationFrame = webkitRequestAnimationFrame,
