@@ -218,7 +218,9 @@ chrome.tabs.onUpdated.addListener(function(id, change, tab) {
     return;
   }
 
-  Mod(host, mod[0], mod[1]);
+  if (IsLocked(mod[0])) {
+    Mod(host, mod[0], mod[1]);
+  }
 });
 
 })();

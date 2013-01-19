@@ -200,10 +200,12 @@ var Handle = function(msg) {
     ShowToast(TimeDesc(msg.timeout) + '!', 2000);
     break;
   case 'mod!':
+    console.log(msg);
     var mod = Mods[msg.name];
     mod && mod(true);
     break;
   case 'unmod!':
+    console.log(msg);
     var mod = Mods[msg.name];
     mod && mod(false);
     break;
@@ -245,8 +247,8 @@ window.addEventListener('DOMContentLoaded', function(e) {
 // monkey patch jquery to use raf callbacks rather than setInterval
 var UseRafTimer = function() {
   var animating,
-      requestAnimationFrame = webkitRequestAnimationFrame,
-      cancelAnimationFrame = webkitCancelAnimationFrame;
+      requestAnimationFrame = requestAnimationFrame || webkitRequestAnimationFrame,
+      cancelAnimationFrame = cancelAnimationFrame || webkitCancelAnimationFrame;
 
   var tick = function() {
     if (!animating)
@@ -272,7 +274,6 @@ var UseRafTimer = function() {
 var WaitFor = function(queries, interval, timeout, callback) {
   var startAt = Date.now();
   var Find = function() {
-    console.log('Find', queries);
     for (var i = 0; i < queries.length; i++) {
       var f = $(queries[i]);
       if (f.length > 0) {
@@ -305,7 +306,12 @@ Mods.MuteSandbar = function(apply) {
       .css('height', rect.height - 2)
   };
 
+  var overlay = $('#clear-overlay');
   if (apply) {
+    if (overlay.length > 0) {
+      return;
+    }
+
     // this is mostly for gmail which loads its UI really late. wait for any
     // of these queries to match.
     WaitFor(['#gbg1', '#sb-button-notify'], 100, 2000, function(e) {
@@ -334,7 +340,7 @@ Mods.MuteSandbar = function(apply) {
     });
   } else {
     // just remove the overlay
-    $('#clear-overlay').remove();
+    overlay.remove();
   }
 };
 
