@@ -1,10 +1,10 @@
 (function() {
 
 const MINUTES = 60 * 1000;
-// const TIMEOUT = 5 * MINUTES;
-// const WARNING = 30 * 1000;
-const TIMEOUT = 10 * 1000;
-const WARNING = 5 * 1000;
+const TIMEOUT = 5 * MINUTES;
+const WARNING = 30 * 1000;
+// const TIMEOUT = 10 * 1000;
+// const WARNING = 5 * 1000;
 
 
 // a map from host that can be locked an the lock timeout.
@@ -101,7 +101,7 @@ var Lock = function(host) {
   }
 
   mod[0].forEach(function(target) {
-    Unmod(target, host, mod[1]);
+    Mod(target, host, mod[1]);
   });
 };
 
@@ -123,6 +123,13 @@ var Unlock = function(host) {
     host: host,
     timeout: TIMEOUT
   });
+
+  var mods = modsBySource[host];
+  if (mods) {
+    mods[0].forEach(function(target) {
+      Unmod(target, host, mods[1]);
+    });
+  }
 
   // timer loop for re-lock
   var tickLock = function() {

@@ -311,6 +311,7 @@ Mods.MuteSandbar = function(apply) {
     WaitFor(['#gbg1', '#sb-button-notify'], 100, 2000, function(e) {
       // create an overlay
       var o = E('div').css('position', 'absolute')
+        .attr('id', 'clear-overlay')
         .css('z-index', '60000')
         .css('border-radius', 2)
         .css('background-color', '#eee')
@@ -332,7 +333,8 @@ Mods.MuteSandbar = function(apply) {
       });
     });
   } else {
-
+    // just remove the overlay
+    $('#clear-overlay').remove();
   }
 };
 
