@@ -200,10 +200,12 @@ var Handle = function(msg) {
     ShowToast(TimeDesc(msg.timeout) + '!', 2000);
     break;
   case 'mod!':
-    console.log('mod!');
+    var mod = Mods[msg.name];
+    mod && mod(true);
     break;
   case 'unmod!':
-    console.log('unmod!');
+    var mod = Mods[msg.name];
+    mod && mod(false);
     break;
   }
 };
@@ -263,6 +265,75 @@ var UseRafTimer = function() {
   jQuery.fx.stop = function() {
     animating = false;
   };
+};
+
+
+// wait for a particular element to appear by polling
+var WaitFor = function(queries, interval, timeout, callback) {
+  var startAt = Date.now();
+  var Find = function() {
+    console.log('Find', queries);
+    for (var i = 0; i < queries.length; i++) {
+      var f = $(queries[i]);
+      if (f.length > 0) {
+        callback(f);
+        return;
+      }
+    }
+
+    // over the timeout?
+    if (Date.now() - startAt > timeout) {
+      return;
+    }
+
+    setTimeout(Find, interval);
+  };
+
+  Find();
+};
+
+
+// mods that can be applied to hosts that serve distraction on behalf of other hosts
+var Mods = {};
+Mods.MuteSandbar = function(apply) {
+  // the sandbar drifts quite a bit based on window size
+  var Resize = function(target, overlay) {
+    var rect = target.get(0).getBoundingClientRect();
+    overlay.css('top', rect.top)
+      .css('left', rect.left)
+      .css('width', rect.width - 2)
+      .css('height', rect.height - 2)
+  };
+
+  if (apply) {
+    // this is mostly for gmail which loads its UI really late. wait for any
+    // of these queries to match.
+    WaitFor(['#gbg1', '#sb-button-notify'], 100, 2000, function(e) {
+      // create an overlay
+      var o = E('div').css('position', 'absolute')
+        .css('z-index', '60000')
+        .css('border-radius', 2)
+        .css('background-color', '#eee')
+        .css('border', '1px solid #ccc')
+        .appendTo($(document.body));
+
+      // run resize immediately
+      Resize(e, o);
+      
+      // there are cases where we can loose the gmail notifier in a layout
+      // shuffle
+      setTimeout(function() {
+        Resize(e, o);
+      }, 100);
+
+      // wire up resize so we can keep it covered
+      $(window).resize(function() {
+        Resize(e, o);
+      });
+    });
+  } else {
+
+  }
 };
 
 })();

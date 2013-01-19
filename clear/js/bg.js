@@ -6,6 +6,7 @@ const MINUTES = 60 * 1000;
 const TIMEOUT = 10 * 1000;
 const WARNING = 5 * 1000;
 
+
 // a map from host that can be locked an the lock timeout.
 var domains = {
   'www.facebook.com'      : 0,
@@ -15,6 +16,27 @@ var domains = {
   'twitter.com'           : 0,
   'www.reddit.com'        : 0,
 };
+
+var modsByTarget = {};
+var modsBySource = {};
+
+
+var Mod = function(source, name, targets) {
+  targets.forEach(function(t) {
+    modsByTarget[t] = [source, name];
+  });
+  modsBySource[source] = [targets, name];
+};
+
+Mod('plus.google.com', 'MuteSandbar', [
+  'www.google.com',
+  'www.youtube.com',
+  'mail.google.com',
+  'drive.google.com',
+  'groups.google.com',
+  'play.google.com',
+  'news.google.com'
+]);
 
 
 // determines if the url is http or https
@@ -71,6 +93,16 @@ var Lock = function(host) {
     q: 'lock!',
     host: host
   });
+
+  // handle mods
+  var mod = modsBySource[host];
+  if (!mod) {
+    return;
+  }
+
+  mod[0].forEach(function(target) {
+    Unmod(target, host, mod[1]);
+  });
 };
 
 
@@ -120,6 +152,26 @@ var Unlock = function(host) {
 };
 
 
+// apply a mod to a host
+var Mod = function(target, source, name) {
+  Broadcast(target, {
+    q: 'mod!',
+    host: source,
+    name: name
+  });
+};
+
+
+// unapply a mod on a host
+var Unmod = function(target, source, name) {
+  Broadcast(target,{
+    q: 'unmod!',
+    host: source,
+    name: name
+  });
+};
+
+
 // is this host currently locked?
 var IsLocked = function(host) {
   var exp = domains[host];
@@ -149,11 +201,17 @@ chrome.tabs.onUpdated.addListener(function(id, change, tab) {
 
   var host = HostOf(tab.url);
 
-  if (!IsLocked(host)) {
+  if (IsLocked(host)) {
+    Lock(host);
     return;
   }
 
-  Lock(host);
+  var mod = modsByTarget[host];
+  if (!mod) {
+    return;
+  }
+
+  Mod(host, mod[0], mod[1]);
 });
 
 })();
