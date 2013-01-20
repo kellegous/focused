@@ -139,6 +139,7 @@ var CreateUi = function() {
   // hides the lock ui
   var Hide = function(callback) {
     if (!showing) {
+      callback && setTimeout(callback, 0);
       return;
     }
     showing = false;
@@ -193,19 +194,20 @@ var Handle = function(msg) {
       return;
     }
     ui.Hide(function() {
-      ShowToast('fine, take ' + TimeDesc(msg.timeout) + '.', 2000);
+      var text = msg.timeout
+          ? 'fine, take ' + TimeDesc(msg.timeout) + '.'
+          : 'unlocked for good.';
+      ShowToast(text, 2000);
     });
     break;
   case 'warn!':
     ShowToast(TimeDesc(msg.timeout) + '!', 2000);
     break;
   case 'mod!':
-    console.log(msg);
     var mod = Mods[msg.name];
     mod && mod(true);
     break;
   case 'unmod!':
-    console.log(msg);
     var mod = Mods[msg.name];
     mod && mod(false);
     break;

@@ -31,6 +31,7 @@
   border: 1px solid #aaa;
   -webkit-user-select: none;
   overflow: hidden;
+  line-height: 1.2;
 }
 
 #clear-upper > div {

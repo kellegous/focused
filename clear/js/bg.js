@@ -6,20 +6,20 @@ const WARNING = 30 * 1000;
 // const TIMEOUT = 10 * 1000;
 // const WARNING = 5 * 1000;
 
+var DEFAULTS = [
+  'www.facebook.com',
+  'plus.google.com',
+  'news.ycombinator.com',
+  'pinterest.com',
+  'twitter.com',
+  'www.reddit.com'
+];
 
 // a map from host that can be locked an the lock timeout.
-var domains = {
-  'www.facebook.com'      : 0,
-  'plus.google.com'       : 0,
-  'news.ycombinator.com'  : 0,
-  'pinterest.com'         : 0,
-  'twitter.com'           : 0,
-  'www.reddit.com'        : 0
-};
+var domains = {};
 
 var modsByTarget = {};
 var modsBySource = {};
-
 
 var Mod = function(source, name, targets) {
   targets.forEach(function(t) {
@@ -37,6 +37,51 @@ Mod('plus.google.com', 'MuteSandbar', [
   'play.google.com',
   'news.google.com'
 ]);
+
+
+// A simple model
+var Model = (function() {
+  var domains = {},
+      self = {};
+
+  var Store = function() {
+    var list = [];
+    for (var key in domains) {
+      list.push(key);
+    }
+    chrome.storage.local.set({ domains: list });
+  };
+
+  var Add = function(host) {
+    return domains[host] = {
+      lockAt: 0,
+      timer: null
+    };
+  };
+
+
+  chrome.storage.local.get(['domains'], function(res) {
+    var list = res.domains || DEFAULTS;
+    list.forEach(Add);
+  });
+
+  self.Get = function(host) {
+    return domains[host];
+  };
+
+  self.Add = function(host) {
+    var s = Add(host);
+    Store();
+    return s;
+  };
+
+  self.Del = function(host) {
+    delete domains[host];
+    Store();
+  };
+
+  return self;
+})();
 
 
 // determines if the url is http or https
@@ -108,20 +153,14 @@ var Lock = function(host) {
 
 // unlocks the specified host and drive the re-lock timers and multi-tab
 // coordination
-var Unlock = function(host) {
+var Unlock = function(host, timeout) {
   console.log('Unlock', host);
-
-  // compute and record the timeout
-  var warnAt = Date.now() + TIMEOUT;
-  var lockAt = warnAt + WARNING;
-
-  domains[host] = lockAt;
 
   // broadcast to all tabs on this host
   Broadcast(host, {
     q: 'unlock!',
     host: host,
-    timeout: TIMEOUT
+    timeout: timeout
   });
 
   var mods = modsBySource[host];
@@ -131,14 +170,28 @@ var Unlock = function(host) {
     });
   }
 
+  // unlock forever?
+  if (timeout == 0) {
+    Model.Del(host);
+    return;
+  }
+
+  // compute and record the timeout
+  var warnAt = Date.now() + timeout;
+  var lockAt = warnAt + WARNING;
+
+  var state = Model.Get(host);
+  state.lockAt = lockAt;
+
   // timer loop for re-lock
   var tickLock = function() {
     var now = Date.now();
     if (now < lockAt) {
-      setTimeout(tickLock, lockAt - now);
+      state.timer = setTimeout(tickLock, lockAt - now);
       return;
     }
 
+    state.timer = null;
     Lock(host);
   };
 
@@ -146,16 +199,16 @@ var Unlock = function(host) {
   var tickWarn = function() {
     var now = Date.now();
     if (now < warnAt) {
-      setTimeout(tickWarn, warnAt - now);
+      state.timer = setTimeout(tickWarn, warnAt - now);
       return;
     }
 
     Warn(host);
-    setTimeout(tickLock, WARNING);
+    state.timer = setTimeout(tickLock, WARNING);
   };
 
   // start the ticker waiting for warning
-  setTimeout(tickWarn, TIMEOUT);
+  state.timer = setTimeout(tickWarn, TIMEOUT);
 };
 
 
@@ -181,8 +234,13 @@ var Unmod = function(target, source, name) {
 
 // is this host currently locked?
 var IsLocked = function(host) {
-  var exp = domains[host];
-  return exp === undefined ? false : exp < Date.now();
+  var exp = Model.Get(host);
+  return exp === undefined ? false : exp.lockAt < Date.now();
+};
+
+
+var CanLock = function(host) {
+  return Model.Get(host) !== undefined;
 };
 
 
@@ -190,7 +248,7 @@ var IsLocked = function(host) {
 chrome.extension.onMessage.addListener(function(req, sender, respondWith) {
   switch (req.q) {
   case 'unlock!':
-    Unlock(req.host);
+    Unlock(req.host, TIMEOUT);
     break;
   }
 });
@@ -227,12 +285,30 @@ chrome.tabs.onUpdated.addListener(function(id, change, tab) {
 chrome.browserAction.onClicked.addListener(function(tab) {
   var host = HostOf(tab.url);
 
-  if (IsLocked(host)) {
-  } else {
+  var canLock = CanLock(host);
+  var isLocked = IsLocked(host);
+
+  // if locked we unlock forever.
+  if (isLocked) {
+    Unlock(host, 0);
+    return;
   }
 
-  console.log(tab);
-});
+  // if not locked and isn't temporarily open, we add the host and lock
+  if (!canLock) {
+    Model.Add(host);
+    Lock(host);
+    return;
+  }
 
+  // host is temporarily open so we just lock it immediately
+  var state = Model.Get(host);
+  if (state.timer != null) {
+    state.lockAt = 0;
+    clearTimeout(state.timer);
+  }
+
+  Lock(host);
+});
 
 })();

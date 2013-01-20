@@ -27,6 +27,7 @@
     "default_title": "clear"
   },
   "permissions": [
-    "tabs"
+    "tabs",
+    "storage"
   ]
 }
