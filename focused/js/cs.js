@@ -228,24 +228,6 @@ chrome.extension.onMessage.addListener(function(req, sender, responseWith) {
 });
 
 
-// wait for the page's content to load
-window.addEventListener('DOMContentLoaded', function(e) {
-  // install raf jquery changes
-  UseRafTimer();
-
-  // record the time when congestion might be better in the ui
-  congestionEndsAt = Date.now() + 500;
-
-  // dispatch any pending messages and end pending state
-  var toHandle = pending;
-  pending = null;
-  if (toHandle.length > 0) {
-    toHandle.forEach(Handle);
-  }
-
-}, false);
-
-
 // monkey patch jquery to use raf callbacks rather than setInterval
 var UseRafTimer = function() {
   var animating,
@@ -367,5 +349,34 @@ Mods.MuteSandbar = function(apply) {
     overlay.remove();
   }
 };
+
+
+// gets the page in a state to process messages
+var Load = function(startAt) {
+  // install raf jquery changes
+  UseRafTimer();
+
+  // record the time when congestion might be better in the ui
+  congestionEndsAt = startAt;
+
+  // dispatch any pending messages and end pending state
+  var toHandle = pending;
+  pending = null;
+  if (toHandle.length > 0) {
+    toHandle.forEach(Handle);
+  }
+};
+
+
+// Load when the page is ready. If we are being late-injected, it is ready now. Most
+// of the time, though, we will wait on DOMContentLoaded.
+if (document.readyState === 'complete') {
+  Load(0);
+} else {
+  // wait for the page's content to load
+  window.addEventListener('DOMContentLoaded', function(e) {
+    Load(Date.now() + 500);
+  }, false);  
+}
 
 })();

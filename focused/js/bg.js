@@ -252,22 +252,7 @@ var UpdateBrowserAction = function(canLock, tabid) {
 };
 
 
-// listens from commands from the host pages
-chrome.extension.onMessage.addListener(function(req, sender, respondWith) {
-  switch (req.q) {
-  case 'unlock!':
-    Unlock(req.host, TIMEOUT);
-    break;
-  }
-});
-
-
-// use this to monitor tabs that should be locked or modded
-chrome.tabs.onUpdated.addListener(function(id, change, tab) {
-  if (tab.status !== 'loading') {
-    return;
-  }
-
+var UpdateTab = function(tab) {
   if (!IsHttpUrl(tab.url)) {
     return;
   }
@@ -289,6 +274,25 @@ chrome.tabs.onUpdated.addListener(function(id, change, tab) {
   if (IsLocked(mod[0])) {
     Mod(host, mod[0], mod[1]);
   }
+};
+
+// listens from commands from the host pages
+chrome.extension.onMessage.addListener(function(req, sender, respondWith) {
+  switch (req.q) {
+  case 'unlock!':
+    Unlock(req.host, TIMEOUT);
+    break;
+  }
+});
+
+
+// use this to monitor tabs that should be locked or modded
+chrome.tabs.onUpdated.addListener(function(id, change, tab) {
+  if (tab.status !== 'loading') {
+    return;
+  }
+
+  UpdateTab(tab);
 });
 
 
@@ -318,6 +322,28 @@ chrome.browserAction.onClicked.addListener(function(tab) {
   }
 
   Lock(host);
+});
+
+// get everything in a working state on install
+chrome.runtime.onInstalled.addListener(function(details) {
+  console.log('onInstalled');
+  if (details.reason !== 'install') {
+    return;
+  }
+
+  // inject the content script into every tab
+  chrome.tabs.query({}, function(tabs) {
+    tabs.forEach(function(tab) {
+      chrome.tabs.executeScript(tab.id, {
+        file: 'js/jquery.min.js'
+      });
+      chrome.tabs.executeScript(tab.id, {
+        file: 'js/cs.js'
+      }, function() {
+        UpdateTab(tab);
+      });
+    });
+  });
 });
 
 })();

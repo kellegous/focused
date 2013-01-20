@@ -1,6 +1,6 @@
 {
   "name" : "Focused",
-  "version" : "0.1",
+  "version" : "0.3",
   "manifest_version" : 2,
   "description" : "Focused",
   "content_scripts" : [
@@ -28,10 +28,14 @@
     "default_title": "Focused"
   },
   "icons": {
-    "128": "im/128.png"
+    "128": "im/128.png",
+    "64": "im/064.png",
+    "32": "im/032.png"
   },
   "permissions": [
     "tabs",
-    "storage"
+    "storage",
+    "http://*/*",
+    "https://*/*"
   ]
 }
