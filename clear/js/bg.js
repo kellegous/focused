@@ -244,6 +244,14 @@ var CanLock = function(host) {
 };
 
 
+var UpdateBrowserAction = function(canLock, tabid) {
+  chrome.browserAction.setIcon({
+    path: canLock ? 'im/ba-hi.png' : 'im/ba-lo.png',
+    tabId: tabid
+  });
+};
+
+
 // listens from commands from the host pages
 chrome.extension.onMessage.addListener(function(req, sender, respondWith) {
   switch (req.q) {
@@ -266,6 +274,8 @@ chrome.tabs.onUpdated.addListener(function(id, change, tab) {
 
   var host = HostOf(tab.url);
 
+  UpdateBrowserAction(CanLock(host), tab.id);
+
   if (IsLocked(host)) {
     Lock(host);
     return;
@@ -285,19 +295,18 @@ chrome.tabs.onUpdated.addListener(function(id, change, tab) {
 chrome.browserAction.onClicked.addListener(function(tab) {
   var host = HostOf(tab.url);
 
-  var canLock = CanLock(host);
-  var isLocked = IsLocked(host);
-
   // if locked we unlock forever.
-  if (isLocked) {
+  if (IsLocked(host)) {
     Unlock(host, 0);
+    UpdateBrowserAction(false, tab.id);
     return;
   }
 
   // if not locked and isn't temporarily open, we add the host and lock
-  if (!canLock) {
+  if (!CanLock(host)) {
     Model.Add(host);
     Lock(host);
+    UpdateBrowserAction(true, tab.id);
     return;
   }
 

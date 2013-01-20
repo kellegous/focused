@@ -77,7 +77,7 @@ var CreateUi = function() {
   // create all the interactive parts
   var button = E('div')
     .appendTo(upper);
-  E('div').addClass('button')
+  E('div').addClass('clear-button')
     .appendTo(button)
     .append($(document.createElement('a'))
       .attr('href', 'javascript:void(0)')
@@ -91,7 +91,7 @@ var CreateUi = function() {
   // add text below lock
   E('div')
     .text('It\u2019s for your own good.')
-    .addClass('title')
+    .addClass('clear-title')
     .appendTo(button);
 
   // create the lower element of the lock ui

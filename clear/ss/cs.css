@@ -41,7 +41,7 @@
   bottom: 30px;
 }
 
-#clear-upper > div > div.button {
+#clear-upper > div > div.clear-button {
   width: 44px;
   height: 44px;
   background-color: #aaa;
@@ -51,7 +51,7 @@
   border: 1px solid #999;
 }
 
-#clear-upper > div > div.button > a {
+#clear-upper > div > div.clear-button > a {
   display: block;
   width: 42px;
   height: 42px;
@@ -64,12 +64,12 @@
   background-repeat: no-repeat, repeat;
 }
 
-#clear-upper > div > div.button > a:hover {
+#clear-upper > div > div.clear-button > a:hover {
   background-image: url("chrome-extension://__MSG_@@extension_id__/im/lock-hi.png"),
       url("chrome-extension://__MSG_@@extension_id__/im/bg.png");
 }
 
-#clear-upper > div > div.title {
+#clear-upper > div > div.clear-title {
   text-align: center;
   margin-top: 12px;
   color: #999;

@@ -1,8 +1,8 @@
 {
-  "name" : "Clear",
+  "name" : "Focused",
   "version" : "0.1",
   "manifest_version" : 2,
-  "description" : "Clear",
+  "description" : "Focused",
   "content_scripts" : [
     {
       "matches" : [ "http://*/*", "https://*/*" ],
@@ -22,9 +22,10 @@
   ],
   "browser_action": {
     "default_icon": {
-      "19": "im/lock-hi.png"
+      "19": "im/ba-lo.png",
+      "38": "im/ba-lo.png"
     },
-    "default_title": "clear"
+    "default_title": "Focused"
   },
   "permissions": [
     "tabs",
