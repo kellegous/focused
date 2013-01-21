@@ -251,7 +251,7 @@ var UpdateBrowserAction = function(canLock, tabid) {
   });
   chrome.browserAction.setTitle({
     title: chrome.i18n.getMessage(
-	  "browserAction_" + (canLock ? "removeLock" : "addLock")),
+	     "browserAction_" + (canLock ? "removeLock" : "addLock")),
     tabId: tabid
   });
 };

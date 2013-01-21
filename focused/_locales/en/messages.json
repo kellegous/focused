@@ -6,9 +6,9 @@
 		"message": "Stop screwing around." 
 	},
 	"browserAction_addLock": {
-		"message": "Add this site to the blacklist."
+		"message": "Prevent any screwing around on this site."
 	},
 	"browserAction_removeLock": {
-		"message": "Remove this site from the blacklist."
+		"message": "Allow screwing around here."
 	}
 }
