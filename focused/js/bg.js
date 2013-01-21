@@ -15,9 +15,6 @@ var DEFAULTS = [
   'www.reddit.com'
 ];
 
-// a map from host that can be locked an the lock timeout.
-var domains = {};
-
 var modsByTarget = {};
 var modsBySource = {};
 
