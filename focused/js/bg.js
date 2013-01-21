@@ -326,7 +326,6 @@ chrome.browserAction.onClicked.addListener(function(tab) {
 
 // get everything in a working state on install
 chrome.runtime.onInstalled.addListener(function(details) {
-  console.log('onInstalled');
   if (details.reason !== 'install') {
     return;
   }
@@ -334,14 +333,17 @@ chrome.runtime.onInstalled.addListener(function(details) {
   // inject the content script into every tab
   chrome.tabs.query({}, function(tabs) {
     tabs.forEach(function(tab) {
-      chrome.tabs.executeScript(tab.id, {
-        file: 'js/jquery.min.js'
-      });
-      chrome.tabs.executeScript(tab.id, {
-        file: 'js/cs.js'
-      }, function() {
+      // not allowed to inject the chrome webstore
+      if (tab.url.indexOf('https://chrome.google.com') == 0) {
+        return;
+      }
+
+      // inject our content scripts
+      chrome.tabs.executeScript(tab.id, { file: 'js/jquery.min.js'} );
+      chrome.tabs.executeScript(tab.id, { file: 'js/cs.js' }, function() {
         UpdateTab(tab);
       });
+
     });
   });
 });
