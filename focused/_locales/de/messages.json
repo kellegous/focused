@@ -1,0 +1,14 @@
+﻿{
+	"appName": {
+		"message": "Focused"
+	},
+	"appDesc": {
+		"message": "Lenk dich nicht ab." 
+	},
+	"browserAction_addLock": {
+		"message": "Stufe diese Seite als ablenkend ein."
+	},
+	"browserAction_removeLock": {
+		"message": "Stufe diese Seite als harmlos ein."
+	}
+}

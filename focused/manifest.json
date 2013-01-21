@@ -1,8 +1,9 @@
 {
-  "name" : "Focused",
+  "name" : "__MSG_appName__",
   "version" : "0.4",
   "manifest_version" : 2,
-  "description" : "Focused",
+  "description" : "__MSG_appDesc__",
+  "default_locale": "en",
   "content_scripts" : [
     {
       "matches" : [ "http://*/*", "https://*/*" ],
@@ -25,7 +26,7 @@
       "19": "im/ba-lo.png",
       "38": "im/ba-lo.png"
     },
-    "default_title": "Focused"
+    "default_title": "__MSG_appName__"
   },
   "icons": {
     "128": "im/128.png",

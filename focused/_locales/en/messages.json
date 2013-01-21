@@ -1,0 +1,14 @@
+﻿{
+	"appName": {
+		"message": "Focused"
+	},
+	"appDesc": {
+		"message": "Stop screwing around." 
+	},
+	"browserAction_addLock": {
+		"message": "Add this site to the blacklist."
+	},
+	"browserAction_removeLock": {
+		"message": "Remove this site from the blacklist."
+	}
+}
