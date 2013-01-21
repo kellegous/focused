@@ -2,7 +2,7 @@
 
 const MINUTES = 60 * 1000;
 const TIMEOUT = 5 * MINUTES;
-const WARNING = 30 * 1000;
+const WARNING = 0.5 * MINUTES;
 // const TIMEOUT = 10 * 1000;
 // const WARNING = 5 * 1000;
 
@@ -247,6 +247,11 @@ var CanLock = function(host) {
 var UpdateBrowserAction = function(canLock, tabid) {
   chrome.browserAction.setIcon({
     path: canLock ? 'im/ba-hi.png' : 'im/ba-lo.png',
+    tabId: tabid
+  });
+  chrome.browserAction.setTitle({
+    title: chrome.i18n.getMessage(
+	  "browserAction_" + (canLock ? "removeLock" : "addLock")),
     tabId: tabid
   });
 };
