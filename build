@@ -1,0 +1,10 @@
+#!/bin/bash
+
+HERE=$( cd $(dirname "$0") && pwd )
+FILE="${HERE}/focused.zip"
+
+if [ -f "$FILE" ]; then
+  rm -f "$FILE"
+fi
+
+zip -r $FILE $HERE/focused
