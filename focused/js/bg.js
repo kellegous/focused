@@ -3,7 +3,7 @@
 const MINUTES = 60 * 1000;
 const TIMEOUT = 5 * MINUTES;
 const WARNING = 0.5 * MINUTES;
-// const TIMEOUT = 10 * 1000;
+// const TIMEOUT = 60 * 1000;
 // const WARNING = 5 * 1000;
 
 var DEFAULTS = [
@@ -200,8 +200,15 @@ var Unlock = function(host, timeout) {
       return;
     }
 
-    Warn(host);
-    state.timer = setTimeout(tickLock, WARNING);
+    // if we were suspended, we may be way in the future
+    if (now < lockAt) {
+      Warn(host);
+      state.timer = setTimeout(tickLock, WARNING);
+      return;
+    }
+
+    state.timer = null;
+    Lock(host);
   };
 
   // start the ticker waiting for warning
